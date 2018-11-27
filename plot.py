@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def ploteach(ax, datafile):
+def ploteach(datafile):
     with open(datafile) as f:
         u = [line.split() for line in f]
 
@@ -17,11 +17,11 @@ def ploteach(ax, datafile):
     plt.colorbar()
 
 plt.figure(figsize=(12, 8))
-ax1 = plt.subplot(221)
-ploteach(ax1, "u0.txt")
-ax2 = plt.subplot(222)
-ploteach(ax2, "exact.txt")
-ax3 = plt.subplot(223)
-ploteach(ax3, "diff.txt")
+plt.subplot(221)
+ploteach("u0.txt")
+plt.subplot(222)
+ploteach("exact.txt")
+plt.subplot(223)
+ploteach("diff.txt")
 plt.savefig("plot.png")
 plt.close()
