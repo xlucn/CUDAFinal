@@ -107,6 +107,8 @@ double* linearadvectionFOU2D(int NX, int NY, double* pt)
     
     /* define correct sized numerical solution array */
     double *u = (double*)calloc(NX * NY, sizeof(double));
+    /* temp pointer to swap u and u0 */
+    double *temp;
     /* extended array for 'ghost values' mentioned below */
     for(int timecount = 0; timecount < Ntimesteps; timecount++)
     {//P
@@ -118,7 +120,7 @@ double* linearadvectionFOU2D(int NX, int NY, double* pt)
                     - Cx * (u0[j * NX + i] - u0[j * NX + i - 1])
                     - Cy * (u0[j * NX + i] - u0[(j - 1) * NX + i]);
         /* copy solution to initial conditions for next iteration */
-        memcpy(u0, u, NX * NY * sizeof(double));
+        temp = u0, u0 = u, u = temp;
     }
 
     *pt = t;
