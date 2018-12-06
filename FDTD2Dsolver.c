@@ -34,6 +34,7 @@
 #include <string.h> /* memcpy */
 #include <math.h>   /* exp */
 #include <stdlib.h> /* malloc */
+#include <time.h>   /* timing */
 
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 
@@ -170,7 +171,11 @@ int main()
 
     double *u0, t;
 
+    time_t start = clock();
     u0 = linearadvectionFOU2D(NX, NY, &t);
+    time_t end = clock();
+    printf("Time: %fs.\n", 1.0 * (end - start) / CLOCKS_PER_SEC);
+
     printf("Writing to files ...\n");
     writetofile(u0, t, NX, NY);
     printf("Done.\n");
