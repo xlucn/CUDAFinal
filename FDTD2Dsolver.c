@@ -42,6 +42,8 @@ const double p = 0;
 const double q = 100;
 const double r = 0;
 const double s = 100;
+const double vx = 0.5;      /* water speed in x direction */
+const double vy = 0.5;      /* water speed in y direction */
 
 /**
  * 2 dimensional Gaussian function over [p, q]x[r, s], height 1, centred on
@@ -65,32 +67,16 @@ double gaussian2D(double x, double y)
     return z;
 }
 
-void linearadvectionFOU2D()
+double* linearadvectionFOU2D(int NX, int NY, double* pt)
 {
-    double vx = 0.5;       /* water speed in x direction */
-    double vy = 0.5;      /* water speed in y direction */
-    int NX = 2048;        /* number of grid points in x direction */
-    int NY = 2048;        /* number of grid points in y direction */
-
     /* spatial step size in x */
     double dx = (q - p) / (NX - 1);
     /* spatial step size in x */
     double dy = (s - r) / (NY - 1);
-    
-    /* current time for outputted solution
-     * Insert ghost values.
-     * Each row needs a left hand ghost value.
-     * Each column needs a lower ghost value.
-     * Hence the matrix of u values becomes NX+1 by NY+1 and the
-     * non-ghost values are in the ranges i = 2 to NX+1, j = 2 to NY+1.
-     * Insert the ghost values assuming the (Dirichlet) conditions of
-     * u0 = 0 at the boundaries at all times. Extend u0.
-     * This is a quick way.
-     */
-    /* initial u vector, extended array for 'ghost values' */
+    /* Increase NX and NY to create an extra row and col with zero
+     * as boundary conditions. */
+    NX++; NY++;
     /* vector of grid points in x */
-    NX++;
-    NY++;
     double *x = (double*)malloc(NX * sizeof(double));
     for(int i = 0; i < NX - 1; i++)
         x[i + 1] = p + i * dx;
@@ -98,6 +84,7 @@ void linearadvectionFOU2D()
     double *y = (double*)malloc(NY * sizeof(double));
     for(int i = 0; i < NY - 1; i++)
         y[i + 1] = r + i * dy;
+    /* initial u vector, extended array for 'ghost values' */
     double *u0 = (double*)calloc(NX * NY, sizeof(double));
     for(int i = 1; i < NX; i++)
         for(int j = 1; j < NY; j++)
@@ -132,18 +119,37 @@ void linearadvectionFOU2D()
         /* copy solution to initial conditions for next iteration */
         memcpy(u0, u, NX * NY * sizeof(double));
     }
-    
+
+    *pt = t;
+    free(x);
+    free(y);
+    free(u);
+
+    return u0;
+}
+
+void writetofile(double *u0, double t, int NX, int NY)
+{
+    /* spatial step size in x */
+    double dx = (q - p) / (NX - 1);
+    /* spatial step size in x */
+    double dy = (s - r) / (NY - 1);
+    /* Increase NX and NY to create an extra row and col with zero
+     * as boundary conditions. */
+    NX++; NY++;
     /* Output */
     FILE* u0file = fopen("u0.txt", "w");
     FILE* exactfile = fopen("exact.txt", "w");
     FILE* difffile = fopen("diff.txt", "w");
-    double Eu0, Eexact;
+    double Eu0, Eexact, x, y;
     for(int i = 1; i < NX; i++)
     {
         for(int j = 1; j < NY; j++)
         {
+            x = p + (i - 1) * dx;
+            y = r + (j - 1) * dy;
             Eu0 = u0[j * NX + i];
-            Eexact = gaussian2D(x[i] - vx * t, y[j] - vy * t);
+            Eexact = gaussian2D(x - vx * t, y - vy * t);
             fprintf(u0file, "%10.6f ", Eu0); 
             fprintf(exactfile, "%10.6f ", Eexact);
             fprintf(difffile, "%10.6f ", Eu0 - Eexact);
@@ -159,6 +165,17 @@ void linearadvectionFOU2D()
 
 int main()
 {
-    linearadvectionFOU2D();
+    int NX = 2048;        /* number of grid points in x direction */
+    int NY = 2048;        /* number of grid points in y direction */
+
+    double *u0, t;
+
+    u0 = linearadvectionFOU2D(NX, NY, &t);
+    printf("Writing to files ...\n");
+    writetofile(u0, t, NX, NY);
+    printf("Done.\n");
+
+    free(u0);
+
     return 0;
 }
