@@ -93,12 +93,12 @@ double* linearadvectionFOU2D(int NX, int NY, double* pt)
 
     /* initial time */
     double t = 0;
-    /* number of time steps */
-    int Ntimesteps = 500;
     /* safety factor */
     double F = 0.4;
     /* heuristic time step calc */
     double dt  = F * MIN(dx / fabs(vx), dy / fabs(vy)); 
+    /* number of time steps */
+    int Ntimesteps = MIN(500, 20 / dt);
     
     /* Courant number in the x direction */
     double Cx = dt * vx / dx;
