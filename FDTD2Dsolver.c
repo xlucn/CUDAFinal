@@ -77,19 +77,11 @@ double* linearadvectionFOU2D(int NX, int NY, double* pt)
     /* Increase NX and NY to create an extra row and col with zero
      * as boundary conditions. */
     NX++; NY++;
-    /* vector of grid points in x */
-    double *x = (double*)malloc(NX * sizeof(double));
-    for(int i = 0; i < NX - 1; i++)
-        x[i + 1] = p + i * dx;
-    /* vector of grid points in y */
-    double *y = (double*)malloc(NY * sizeof(double));
-    for(int i = 0; i < NY - 1; i++)
-        y[i + 1] = r + i * dy;
     /* initial u vector, extended array for 'ghost values' */
     double *u0 = (double*)calloc(NX * NY, sizeof(double));
     for(int i = 1; i < NX; i++)
         for(int j = 1; j < NY; j++)
-            u0[j * NX + i] = gaussian2D(x[i], y[j]);
+            u0[j * NX + i] = gaussian2D(p + (i - 1) * dx, r + (j - 1) * dy);
 
     /* initial time */
     double t = 0;
@@ -124,8 +116,6 @@ double* linearadvectionFOU2D(int NX, int NY, double* pt)
     }
 
     *pt = t;
-    free(x);
-    free(y);
     free(u);
 
     return u0;
